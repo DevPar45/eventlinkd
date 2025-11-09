@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the document owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update, delete: if isOwner(userId);
+    }
+    
+    // Events collection
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && 
+        resource.data.organiserId == request.auth.uid;
+    }
+    
+    // Applications collection
+    match /applications/{applicationId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.volunteerId == request.auth.uid ||
+         get(/databases/$(database)/documents/events/$(resource.data.eventId)).data.organiserId == request.auth.uid);
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        (resource.data.volunteerId == request.auth.uid ||
+         get(/databases/$(database)/documents/events/$(resource.data.eventId)).data.organiserId == request.auth.uid);
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, write: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+    }
+    
+    // Chats collection
+    match /chats/{chatId} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+    }
+  }
+}
+
+
+
