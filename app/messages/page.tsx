@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { getChats, getMessages, sendMessage, subscribeToMessages, markMessagesAsRead } from "@/lib/firebase/messages";
 import { Chat, Message } from "@/lib/types";
@@ -9,7 +9,7 @@ import { Send, MessageSquare, User } from "lucide-react";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [chats, setChats] = useState<Chat[]>([]);
@@ -104,13 +104,19 @@ export default function MessagesPage() {
     );
   }
 
-  const currentChat = chats.find((c) => c.id === selectedChat);
-  const otherParticipantId = currentChat?.participants.find((p) => p !== user.id);
-  const otherParticipantName = otherParticipantId
-    ? (currentChat as any).participantNames?.[
-        currentChat.participants.indexOf(otherParticipantId)
-      ] || "User"
-    : "User";
+ const currentChat = chats.find((c) => c.id === selectedChat) ?? null;
+
+const otherParticipantId = currentChat?.participants?.find(
+  (p) => p !== user.id
+);
+
+let otherParticipantName = "User";
+
+if (currentChat && otherParticipantId) {
+  const idx = currentChat.participants.indexOf(otherParticipantId);
+  otherParticipantName =
+    currentChat.participantNames?.[idx] ?? "User";
+}
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,9 +154,9 @@ export default function MessagesPage() {
                         <p className="font-semibold text-black truncate">{otherName}</p>
                         <p className="text-sm text-gray-600 truncate">{chat.lastMessage || "No messages"}</p>
                       </div>
-                      {chat.unreadCount[user.id] > 0 && (
+                      {(chat.unreadCount?.[user.id] ?? 0) > 0 && (
                         <span className="bg-accent text-white text-xs px-2 py-1 rounded-full">
-                          {chat.unreadCount[user.id]}
+                          {chat.unreadCount?.[user.id] ?? 0}
                         </span>
                       )}
                     </div>
@@ -222,6 +228,20 @@ export default function MessagesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-xl">Loading...</div>
+        </div>
+      }
+    >
+      <MessagesPageContent />
+    </Suspense>
   );
 }
 

@@ -53,7 +53,7 @@ export async function createEvent(eventData: Omit<Event, "id" | "createdAt" | "u
 export async function getEvent(eventId: string): Promise<Event | null> {
   const docSnap = await getDoc(doc(db, "events", eventId));
   if (!docSnap.exists()) return null;
-  const data = docSnap.data();
+  const data = docSnap.data() as Record<string, any>;
   return {
     id: docSnap.id,
     ...data,
@@ -93,7 +93,7 @@ export async function getEvents(filters?: {
 
     const querySnapshot = await getDocs(q);
     let events = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
+      const data = doc.data() as Record<string, any>;
       return {
         id: doc.id,
         ...data,
@@ -117,7 +117,7 @@ export async function getEvents(filters?: {
     try {
       const querySnapshot = await getDocs(collection(db, "events"));
       let events = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
+        const data = doc.data() as Record<string, any>;
         return {
           id: doc.id,
           ...data,
@@ -238,7 +238,7 @@ export async function getApplications(eventId?: string, volunteerId?: string): P
 
   const querySnapshot = await getDocs(q);
   const apps = querySnapshot.docs.map((doc) => {
-    const data = doc.data();
+    const data = doc.data() as Record<string, any>;
     return {
       id: doc.id,
       ...data,

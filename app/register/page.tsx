@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, User, Phone, ArrowRight, Users, Building2 } from "lucide-react";
 import { UserRole } from "@/lib/types";
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -187,6 +187,20 @@ export default function RegisterPage() {
         </form>
       </motion.div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-xl">Loading...</div>
+        </div>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
   );
 }
 
