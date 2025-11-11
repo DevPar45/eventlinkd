@@ -8,6 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/config";
@@ -21,6 +22,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,8 +113,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser((prev) => (prev ? { ...prev, ...updates } : null));
   };
 
+  const resetPassword = async (email: string) => {
+    if (!auth) throw new Error("Firebase is not configured. Please set environment variables.");
+    await sendPasswordResetEmail(auth, email);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, signUp, signIn, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, signUp, signIn, logout, updateUser, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

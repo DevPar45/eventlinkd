@@ -11,24 +11,65 @@ function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
 
+  const getAuthErrorMessage = (err: any) => {
+    const code = err?.code || "";
+    switch (code) {
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+        return "Incorrect email or password.";
+      case "auth/user-not-found":
+        return "No account found with this email.";
+      case "auth/invalid-email":
+        return "Enter a valid email address.";
+      case "auth/too-many-requests":
+        return "Too many attempts. Try again later.";
+      case "auth/network-request-failed":
+        return "Network error. Check your connection.";
+      default:
+        return "Failed to sign in. Please try again.";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
     setLoading(true);
 
     try {
       await signIn(email, password);
       router.push(redirect);
     } catch (err: any) {
-      setError(err.message || "Failed to sign in");
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setError("");
+    setInfo("");
+    if (!email) {
+      setError("Enter your email above, then click Forgot password");
+      return;
+    }
+    try {
+      await resetPassword(email);
+      setInfo("If an account exists for that email, a reset link has been sent.");
+    } catch (err: any) {
+      if (err?.code === "auth/user-not-found") {
+        // Do not reveal account existence
+        setInfo("If an account exists for that email, a reset link has been sent.");
+        return;
+      }
+      setError("Couldn't send reset email. Please try again.");
     }
   };
 
@@ -53,6 +94,11 @@ function LoginPageContent() {
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded">
               {error}
+            </div>
+          )}
+          {info && (
+            <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded">
+              {info}
             </div>
           )}
 
@@ -92,6 +138,15 @@ function LoginPageContent() {
                   className="appearance-none block w-full pl-10 pr-3 py-2 bg-secondary/70 border border-white/10 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                   placeholder="••••••••"
                 />
+              </div>
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  className="text-sm text-accent hover:opacity-80"
+                >
+                  Forgot password?
+                </button>
               </div>
             </div>
           </div>
