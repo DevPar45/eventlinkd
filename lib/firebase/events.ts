@@ -292,6 +292,7 @@ export async function updateApplicationStatus(
   const app = await getDoc(doc(requireDb(), "applications", applicationId));
   const volunteerId = app.data()?.volunteerId;
   const volunteerName = app.data()?.volunteerName;
+  const volunteerEmail = app.data()?.volunteerEmail;
 
   if (status === "accepted" && volunteerId) {
     await updateDoc(doc(requireDb(), "events", eventId), {
@@ -303,6 +304,7 @@ export async function updateApplicationStatus(
     try {
       await sendOnApproval({
         volunteerName: volunteerName || "",
+        volunteerEmail: volunteerEmail || "",
         eventTitle: event?.title || "Event",
         eventId,
         organiserName: event?.organiserName || "",

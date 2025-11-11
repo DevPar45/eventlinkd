@@ -36,6 +36,7 @@ export async function sendOnApply(args: {
   eventTitle: string;
   eventId: string;
   organiserEmail?: string;
+  toEmail?: string;
 }) {
   const base = appUrl();
   const payload = {
@@ -45,6 +46,7 @@ export async function sendOnApply(args: {
     event_link: `${base}/event/${args.eventId}`,
     organiser_email: args.organiserEmail || "",
     logo_url: `${base}/branding/logo.png`,
+    to_email: args.toEmail || args.organiserEmail || args.volunteerEmail,
   };
   try {
     await send("NEXT_PUBLIC_EMAILJS_TEMPLATE_APPLY", payload);
@@ -53,9 +55,11 @@ export async function sendOnApply(args: {
 
 export async function sendOnApproval(args: {
   volunteerName: string;
+  volunteerEmail?: string;
   eventTitle: string;
   eventId: string;
   organiserName?: string;
+  toEmail?: string;
 }) {
   const base = appUrl();
   const payload = {
@@ -64,6 +68,7 @@ export async function sendOnApproval(args: {
     event_link: `${base}/event/${args.eventId}`,
     organiser_name: args.organiserName || "",
     logo_url: `${base}/branding/logo.png`,
+    to_email: args.toEmail || args.volunteerEmail || "",
   };
   try {
     await send("NEXT_PUBLIC_EMAILJS_TEMPLATE_APPROVAL", payload);
@@ -72,9 +77,11 @@ export async function sendOnApproval(args: {
 
 export async function sendOnCertificate(args: {
   volunteerName: string;
+  volunteerEmail?: string;
   eventTitle: string;
   certificateUrl: string;
   verificationCode: string;
+  toEmail?: string;
 }) {
   const base = appUrl();
   const payload = {
@@ -83,6 +90,7 @@ export async function sendOnCertificate(args: {
     certificate_url: args.certificateUrl,
     verify_url: `${base}/verify/${args.verificationCode}`,
     logo_url: `${base}/branding/logo.png`,
+    to_email: args.toEmail || args.volunteerEmail || "",
   };
   try {
     await send("NEXT_PUBLIC_EMAILJS_TEMPLATE_CERTIFICATE", payload);

@@ -37,6 +37,8 @@ export default function EventDetailPage() {
   const [hasApplied, setHasApplied] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
   const [issuing, setIssuing] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -71,10 +73,12 @@ export default function EventDetailPage() {
     setIssuing(true);
     try {
       const res = await completeEventAndIssueCertificates(event.id);
-      alert(`Event marked completed. Certificates issued: ${res.issued}`);
+      setErrorMsg(null);
+      setStatusMsg(`Event marked completed. Certificates issued: ${res.issued}`);
       await loadEvent();
     } catch (e: any) {
-      alert(e?.message || "Failed to issue certificates");
+      setStatusMsg(null);
+      setErrorMsg(e?.message || "Failed to issue certificates");
     } finally {
       setIssuing(false);
     }
@@ -92,10 +96,12 @@ export default function EventDetailPage() {
       await applyToEvent(eventId, user.id, user.name, user.email);
       setHasApplied(true);
       setApplicationStatus("pending");
-      alert("Application submitted successfully!");
+      setErrorMsg(null);
+      setStatusMsg("Application submitted successfully!");
       loadEvent();
     } catch (error: any) {
-      alert(error.message || "Failed to apply");
+      setStatusMsg(null);
+      setErrorMsg(error.message || "Failed to apply");
     } finally {
       setApplying(false);
     }
@@ -105,10 +111,12 @@ export default function EventDetailPage() {
     if (!user || !event) return;
     try {
       await updateApplicationStatus(applicationId, status, eventId);
-      alert(`Application ${status} successfully!`);
+      setErrorMsg(null);
+      setStatusMsg(`Application ${status} successfully!`);
       loadEvent();
     } catch (error: any) {
-      alert(error.message || "Failed to update application");
+      setStatusMsg(null);
+      setErrorMsg(error.message || "Failed to update application");
     }
   };
 
@@ -226,6 +234,12 @@ export default function EventDetailPage() {
 
             {/* Action Buttons */}
             <div className="border-t border-gray-200 pt-6">
+              {statusMsg && (
+                <div className="mb-4 p-3 rounded bg-green-50 text-green-700 border border-green-200">{statusMsg}</div>
+              )}
+              {errorMsg && (
+                <div className="mb-4 p-3 rounded bg-red-50 text-red-700 border border-red-200">{errorMsg}</div>
+              )}
               {isOrganiser ? (
                 <div>
                   <h3 className="text-xl font-semibold text-black mb-4">Applications</h3>
