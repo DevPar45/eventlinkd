@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/lib/context/AuthContext";
+import { AuthProvider } from "@/lib/firebase/context/AuthContext";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="dark">
+      <body className="bg-primary text-gray-200">
         <AuthProvider>
           <Navbar />
           <main className="min-h-screen">{children}</main>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getEvent, applyToEvent, getApplications, updateApplicationStatus } from "@/lib/firebase/events";
 import { getOrCreateChat } from "@/lib/firebase/messages";
 import { Event, Application } from "@/lib/types";

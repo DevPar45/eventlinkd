@@ -15,6 +15,13 @@ import {
 import { db } from "./config";
 import { Event, Application } from "@/lib/types";
 
+function requireDb() {
+  if (!db) {
+    throw new Error("Firebase is not configured. Please set environment variables.");
+  }
+  return db;
+}
+
 export async function createEvent(eventData: Omit<Event, "id" | "createdAt" | "updatedAt">): Promise<string> {
   // Remove undefined values to avoid Firestore errors
   const cleanEventData: any = {
@@ -46,11 +53,12 @@ export async function createEvent(eventData: Omit<Event, "id" | "createdAt" | "u
     cleanEventData.requirements = eventData.requirements;
   }
 
-  const docRef = await addDoc(collection(db, "events"), cleanEventData);
+  const docRef = await addDoc(collection(requireDb(), "events"), cleanEventData);
   return docRef.id;
 }
 
 export async function getEvent(eventId: string): Promise<Event | null> {
+  if (!db) return null;
   const docSnap = await getDoc(doc(db, "events", eventId));
   if (!docSnap.exists()) return null;
   const data = docSnap.data() as Record<string, any>;
@@ -70,6 +78,7 @@ export async function getEvents(filters?: {
   category?: string;
 }): Promise<Event[]> {
   try {
+    if (!db) return [];
     let q: any;
     
     // Build query based on filters
@@ -115,6 +124,7 @@ export async function getEvents(filters?: {
     console.error("Error fetching events:", error);
     // If query fails (e.g., missing index), try a simpler query
     try {
+      if (!db) return [];
       const querySnapshot = await getDocs(collection(db, "events"));
       let events = querySnapshot.docs.map((doc) => {
         const data = doc.data() as Record<string, any>;
@@ -180,11 +190,11 @@ export async function updateEvent(eventId: string, updates: Partial<Event>): Pro
     updateData.endDate = Timestamp.fromDate(updates.endDate);
   }
   
-  await updateDoc(doc(db, "events", eventId), updateData);
+  await updateDoc(doc(requireDb(), "events", eventId), updateData);
 }
 
 export async function deleteEvent(eventId: string): Promise<void> {
-  await deleteDoc(doc(db, "events", eventId));
+  await deleteDoc(doc(requireDb(), "events", eventId));
 }
 
 export async function applyToEvent(
@@ -214,10 +224,10 @@ export async function applyToEvent(
     applicationData.message = message.trim();
   }
   
-  const appRef = await addDoc(collection(db, "applications"), applicationData);
+  const appRef = await addDoc(collection(requireDb(), "applications"), applicationData);
 
   // Update event
-  await updateDoc(doc(db, "events", eventId), {
+  await updateDoc(doc(requireDb(), "events", eventId), {
     appliedVolunteers: [...(event?.appliedVolunteers || []), volunteerId],
     updatedAt: serverTimestamp(),
   });
@@ -227,6 +237,7 @@ export async function applyToEvent(
 
 export async function getApplications(eventId?: string, volunteerId?: string): Promise<Application[]> {
   // Build query without orderBy to avoid required composite indexes
+  if (!db) return [];
   let q: any = query(collection(db, "applications"));
 
   if (eventId) {
@@ -261,17 +272,17 @@ export async function updateApplicationStatus(
   status: "accepted" | "rejected",
   eventId: string
 ): Promise<void> {
-  await updateDoc(doc(db, "applications", applicationId), {
+  await updateDoc(doc(requireDb(), "applications", applicationId), {
     status,
   });
 
   // Update event selected volunteers
   const event = await getEvent(eventId);
-  const app = await getDoc(doc(db, "applications", applicationId));
+  const app = await getDoc(doc(requireDb(), "applications", applicationId));
   const volunteerId = app.data()?.volunteerId;
 
   if (status === "accepted" && volunteerId) {
-    await updateDoc(doc(db, "events", eventId), {
+    await updateDoc(doc(requireDb(), "events", eventId), {
       selectedVolunteers: [...(event?.selectedVolunteers || []), volunteerId],
       updatedAt: serverTimestamp(),
     });

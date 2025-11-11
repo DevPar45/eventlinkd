@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getUser } from "@/lib/firebase/users";
 import { User } from "@/lib/types";
 import { motion } from "framer-motion";

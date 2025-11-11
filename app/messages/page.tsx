@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getChats, getMessages, sendMessage, subscribeToMessages, markMessagesAsRead } from "@/lib/firebase/messages";
 import { Chat, Message } from "@/lib/types";
 import { motion } from "framer-motion";

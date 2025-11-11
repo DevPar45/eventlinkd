@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getEvents, getApplications } from "@/lib/firebase/events";
 import { getUser } from "@/lib/firebase/users";
 import { Event, Application, User } from "@/lib/types";
@@ -97,17 +97,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-black mb-2">
+          <h1 className="text-4xl font-bold text-white mb-2">
             Welcome back, {user.name}!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             {user.role === "organiser"
               ? "Manage your events and view applications"
               : "Track your volunteer applications and upcoming events"}

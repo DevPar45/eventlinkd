@@ -31,10 +31,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (!auth || !db) {
+      setLoading(false);
+      return;
+    }
+
+    const authInstance = auth!;
+    const database = db!;
+
+    const unsubscribe = onAuthStateChanged(authInstance, async (firebaseUser) => {
       setFirebaseUser(firebaseUser);
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        const userDoc = await getDoc(doc(database, "users", firebaseUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUser({
@@ -54,7 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, name: string, role: UserRole, phone?: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    if (!auth || !db) throw new Error("Firebase is not configured. Please set environment variables.");
+    const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
     await updateProfile(userCredential.user, { displayName: name });
 
     const userData: Omit<User, "id"> = {
@@ -67,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updatedAt: new Date(),
     };
 
-    await setDoc(doc(db, "users", userCredential.user.uid), {
+    await setDoc(doc(db!, "users", userCredential.user.uid), {
       ...userData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -77,18 +86,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    if (!auth) throw new Error("Firebase is not configured. Please set environment variables.");
+    const authInstance = auth;
+    await signInWithEmailAndPassword(authInstance, email, password);
   };
 
   const logout = async () => {
-    await signOut(auth);
+    if (!auth) return;
+    const authInstance = auth;
+    await signOut(authInstance);
     setUser(null);
   };
 
   const updateUser = async (updates: Partial<User>) => {
-    if (!firebaseUser) return;
+    if (!firebaseUser || !db) return;
     await setDoc(
-      doc(db, "users", firebaseUser.uid),
+      doc(db!, "users", firebaseUser.uid),
       {
         ...updates,
         updatedAt: serverTimestamp(),

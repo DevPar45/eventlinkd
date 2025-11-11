@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { createEvent } from "@/lib/firebase/events";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, MapPin, Users, FileText, Image as ImageIcon } from "lucide-react";

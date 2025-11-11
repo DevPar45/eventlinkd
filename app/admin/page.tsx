@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Shield, Users, Calendar, MessageSquare, TrendingUp } from "lucide-react";

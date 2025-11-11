@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Calendar, Award, MessageSquare, Shield, Zap } from "lucide-react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 
 export default function Home() {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-white to-gray-50 py-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -19,11 +19,11 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-5xl md:text-7xl font-bold text-black mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
               Connecting Volunteers with
               <span className="text-accent block mt-2">India's Biggest Events</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
               Join EventLink to discover amazing volunteer opportunities, connect with event organisers,
               and build your experience portfolio.
             </p>
@@ -32,14 +32,14 @@ export default function Home() {
                 <>
                   <Link
                     href="/register?role=volunteer"
-                    className="px-8 py-4 bg-accent text-white rounded-lg text-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2"
+                    className="px-8 py-4 bg-accent text-white rounded-lg text-lg font-semibold hover:shadow-[0_0_35px_rgba(239,68,68,0.45)] transition flex items-center justify-center gap-2"
                   >
                     Join as Volunteer
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                   <Link
                     href="/register?role=organiser"
-                    className="px-8 py-4 bg-black text-white rounded-lg text-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2"
+                    className="px-8 py-4 bg-secondary text-white rounded-lg text-lg font-semibold hover:bg-black/70 transition flex items-center justify-center gap-2 border border-white/10"
                   >
                     Join as Organiser
                     <ArrowRight className="w-5 h-5" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getEvents } from "@/lib/firebase/events";
 import { Event } from "@/lib/types";
 import { motion } from "framer-motion";

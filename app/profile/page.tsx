@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { motion } from "framer-motion";
 import { User, Mail, Phone, Edit2, Save, X, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
