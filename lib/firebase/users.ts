@@ -4,6 +4,7 @@ import { User } from "@/lib/types";
 
 export async function getUser(userId: string): Promise<User | null> {
   try {
+    if (!db) return null;
     const userDoc = await getDoc(doc(db, "users", userId));
     if (!userDoc.exists()) return null;
     const userData = userDoc.data();
@@ -21,6 +22,7 @@ export async function getUser(userId: string): Promise<User | null> {
 
 export async function getUsers(userIds: string[]): Promise<User[]> {
   try {
+    if (!db) return [];
     const users = await Promise.all(userIds.map((id) => getUser(id)));
     return users.filter((u) => u !== null) as User[];
   } catch (error) {
