@@ -15,6 +15,13 @@ import {
 import { db } from "./config";
 import { Message, Chat } from "@/lib/types";
 
+function requireDb() {
+  if (!db) {
+    throw new Error("Firebase is not configured. Please set environment variables.");
+  }
+  return db;
+}
+
 export async function sendMessage(
   senderId: string,
   receiverId: string,
@@ -26,7 +33,7 @@ export async function sendMessage(
   const chatId = await getOrCreateChat(senderId, receiverId, senderName, receiverName);
 
   // Send message
-  const messageRef = await addDoc(collection(db, "messages"), {
+  const messageRef = await addDoc(collection(requireDb(), "messages"), {
     chatId,
     senderId,
     receiverId,
@@ -38,7 +45,7 @@ export async function sendMessage(
   });
 
   // Update chat last message
-  await updateDoc(doc(db, "chats", chatId), {
+  await updateDoc(doc(requireDb(), "chats", chatId), {
     lastMessage: content,
     lastMessageTime: serverTimestamp(),
   });
@@ -53,6 +60,7 @@ export async function getOrCreateChat(
   userName2: string
 ): Promise<string> {
   // Check if chat exists
+  if (!db) throw new Error("Firebase is not configured. Please set environment variables.");
   const chatsQuery = query(
     collection(db, "chats"),
     where("participants", "array-contains", userId1)
@@ -67,7 +75,7 @@ export async function getOrCreateChat(
   }
 
   // Create new chat
-  const chatRef = await addDoc(collection(db, "chats"), {
+  const chatRef = await addDoc(collection(requireDb(), "chats"), {
     participants: [userId1, userId2],
     participantNames: [userName1, userName2],
     unreadCount: {
@@ -81,6 +89,7 @@ export async function getOrCreateChat(
 }
 
 export async function getChats(userId: string): Promise<Chat[]> {
+  if (!db) return [];
   const q = query(
     collection(db, "chats"),
     where("participants", "array-contains", userId)
@@ -105,6 +114,7 @@ export async function getChats(userId: string): Promise<Chat[]> {
 }
 
 export async function getMessages(chatId: string): Promise<Message[]> {
+  if (!db) return [];
   const q = query(
     collection(db, "messages"),
     where("chatId", "==", chatId),
@@ -126,6 +136,7 @@ export function subscribeToMessages(
   chatId: string,
   callback: (messages: Message[]) => void
 ): () => void {
+  if (!db) return () => {};
   const q = query(
     collection(db, "messages"),
     where("chatId", "==", chatId),
@@ -146,6 +157,7 @@ export function subscribeToMessages(
 }
 
 export async function markMessagesAsRead(chatId: string, userId: string): Promise<void> {
+  if (!db) return;
   const q = query(
     collection(db, "messages"),
     where("chatId", "==", chatId),
