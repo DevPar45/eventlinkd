@@ -49,6 +49,20 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && 
         request.auth.uid in resource.data.participants;
     }
+
+    // Certificates collection
+    match /certificates/{certificateId} {
+      // Public verification
+      allow read: if resource.data.verificationPublic == true
+                  || (isAuthenticated() && (
+                      resource.data.volunteerId == request.auth.uid ||
+                      resource.data.organiserId == request.auth.uid
+                  ));
+      // Issued by authenticated users (organisers via app logic)
+      allow create: if isAuthenticated();
+      // Allow updates only by organiser who issued
+      allow update, delete: if isAuthenticated() && resource.data.organiserId == request.auth.uid;
+    }
   }
 }
 

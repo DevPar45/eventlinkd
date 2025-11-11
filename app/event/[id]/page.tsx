@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { getEvent, applyToEvent, getApplications, updateApplicationStatus } from "@/lib/firebase/events";
+import { completeEventAndIssueCertificates } from "@/lib/firebase/certificates";
 import { getOrCreateChat } from "@/lib/firebase/messages";
 import { Event, Application } from "@/lib/types";
 import { motion } from "framer-motion";
@@ -35,6 +36,7 @@ export default function EventDetailPage() {
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [issuing, setIssuing] = useState(false);
 
   useEffect(() => {
     if (eventId) {
@@ -61,6 +63,20 @@ export default function EventDetailPage() {
       console.error("Error loading event:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompleteAndIssue = async () => {
+    if (!event || !isOrganiser) return;
+    setIssuing(true);
+    try {
+      const res = await completeEventAndIssueCertificates(event.id);
+      alert(`Event marked completed. Certificates issued: ${res.issued}`);
+      await loadEvent();
+    } catch (e: any) {
+      alert(e?.message || "Failed to issue certificates");
+    } finally {
+      setIssuing(false);
     }
   };
 
@@ -276,6 +292,15 @@ export default function EventDetailPage() {
                       ))}
                     </div>
                   )}
+                  <div className="mt-6 flex items-center gap-3">
+                    <button
+                      onClick={handleCompleteAndIssue}
+                      disabled={issuing || event.status === "completed"}
+                      className="px-4 py-2 bg-accent text-white rounded disabled:opacity-50"
+                    >
+                      {event.status === "completed" ? "Certificates Issued" : (issuing ? "Issuing Certificates..." : "Mark Completed & Issue Certificates")}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>

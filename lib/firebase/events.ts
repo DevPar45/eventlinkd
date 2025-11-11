@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./config";
 import { Event, Application } from "@/lib/types";
+import { sendOnApply, sendOnApproval } from "@/lib/notifications/email";
 
 function requireDb() {
   if (!db) {
@@ -232,6 +233,16 @@ export async function applyToEvent(
     updatedAt: serverTimestamp(),
   });
 
+  // Notify (best-effort)
+  try {
+    await sendOnApply({
+      volunteerName,
+      volunteerEmail,
+      eventTitle: event?.title || "Event",
+      eventId,
+    });
+  } catch {}
+
   return appRef.id;
 }
 
@@ -280,12 +291,23 @@ export async function updateApplicationStatus(
   const event = await getEvent(eventId);
   const app = await getDoc(doc(requireDb(), "applications", applicationId));
   const volunteerId = app.data()?.volunteerId;
+  const volunteerName = app.data()?.volunteerName;
 
   if (status === "accepted" && volunteerId) {
     await updateDoc(doc(requireDb(), "events", eventId), {
       selectedVolunteers: [...(event?.selectedVolunteers || []), volunteerId],
       updatedAt: serverTimestamp(),
     });
+
+    // Notify volunteer of approval
+    try {
+      await sendOnApproval({
+        volunteerName: volunteerName || "",
+        eventTitle: event?.title || "Event",
+        eventId,
+        organiserName: event?.organiserName || "",
+      });
+    } catch {}
   }
 }
 

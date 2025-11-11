@@ -9,6 +9,16 @@ export interface User {
   bio?: string;
   avatar?: string;
   verified?: boolean;
+  // Volunteer fields
+  city?: string;
+  college?: string;
+  skills?: string[];
+  totalEventsCompleted?: number;
+  // Organiser fields
+  orgName?: string;
+  contactPerson?: string;
+  logo?: string;
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +37,7 @@ export interface Event {
   appliedVolunteers: string[];
   selectedVolunteers: string[];
   status: "open" | "closed" | "completed";
+  certificateIssued?: boolean;
   image?: string;
   requirements?: string[];
   createdAt: Date;
@@ -42,6 +53,18 @@ export interface Application {
   status: "pending" | "accepted" | "rejected";
   appliedAt: Date;
   message?: string;
+}
+
+export interface Certificate {
+  id: string;
+  eventId: string;
+  eventTitle: string;
+  organiserId: string;
+  volunteerId: string;
+  volunteerName: string;
+  issuedAt: Date;
+  url: string;
+  verificationCode: string;
 }
 
 export interface Message {
@@ -63,6 +86,3 @@ export interface Chat {
   lastMessageTime?: Date;
   unreadCount: { [userId: string]: number };
 }
-
-
-

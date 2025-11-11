@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/firebase/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogOut, User, Calendar, MessageSquare, Home } from "lucide-react";
+import { LogOut, User, Calendar, MessageSquare, Home, Award } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout, loading } = useAuth();
@@ -56,6 +56,15 @@ export default function Navbar() {
                   <Calendar className="w-5 h-5" />
                   <span className="hidden sm:inline">Events</span>
                 </Link>
+                {user.role === "volunteer" && (
+                  <Link
+                    href="/certificates"
+                    className="flex items-center gap-2 text-gray-200 hover:text-accent transition"
+                  >
+                    <Award className="w-5 h-5" />
+                    <span className="hidden sm:inline">Certificates</span>
+                  </Link>
+                )}
                 <Link
                   href="/messages"
                   className="flex items-center gap-2 text-gray-200 hover:text-accent transition"
