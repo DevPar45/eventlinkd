@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/lib/firebase/context/AuthContext";
-import { getChats, getMessages, sendMessage, subscribeToMessages, markMessagesAsRead } from "@/lib/firebase/messages";
+import { getChats, getMessages, sendMessage, subscribeToMessages, markMessagesAsRead, subscribeToChats } from "@/lib/firebase/messages";
 import { Chat, Message } from "@/lib/types";
 import { motion } from "framer-motion";
 import { Send, MessageSquare, User } from "lucide-react";
@@ -19,9 +19,19 @@ function MessagesPageContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      loadChats();
-    }
+    if (!user) return;
+    setLoading(true);
+    const unsub = subscribeToChats(user.id, (list) => {
+      setChats(list);
+      const chatParam = searchParams.get("chat");
+      if (chatParam) {
+        setSelectedChat(chatParam);
+      } else if (list.length > 0 && !selectedChat) {
+        setSelectedChat(list[0].id);
+      }
+      setLoading(false);
+    });
+    return () => unsub && unsub();
   }, [user]);
 
   useEffect(() => {
@@ -35,23 +45,8 @@ function MessagesPageContent() {
     }
   }, [selectedChat, user]);
 
-  const loadChats = async () => {
-    if (!user) return;
-    try {
-      const userChats = await getChats(user.id);
-      setChats(userChats);
-      const chatParam = searchParams.get("chat");
-      if (chatParam) {
-        setSelectedChat(chatParam);
-      } else if (userChats.length > 0 && !selectedChat) {
-        setSelectedChat(userChats[0].id);
-      }
-    } catch (error) {
-      console.error("Error loading chats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // retained for potential manual refresh usage (not used now)
+  const loadChats = async () => {};
 
   const loadMessages = (): (() => void) | undefined => {
     if (!selectedChat || !user) return;

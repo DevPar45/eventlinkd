@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   Timestamp,
   onSnapshot,
+  increment,
 } from "firebase/firestore";
 import { db } from "./config";
 import { Message, Chat } from "@/lib/types";
@@ -48,7 +49,8 @@ export async function sendMessage(
   await updateDoc(doc(requireDb(), "chats", chatId), {
     lastMessage: content,
     lastMessageTime: serverTimestamp(),
-  });
+    [`unreadCount.${receiverId}`]: increment(1),
+  } as any);
 
   return messageRef.id;
 }
@@ -168,5 +170,34 @@ export async function markMessagesAsRead(chatId: string, userId: string): Promis
   const snapshot = await getDocs(q);
   const batch = snapshot.docs.map((doc) => updateDoc(doc.ref, { read: true }));
   await Promise.all(batch);
+
+  // Reset unread counter for this chat for the user
+  await updateDoc(doc(requireDb(), "chats", chatId), {
+    [`unreadCount.${userId}`]: 0,
+  } as any);
 }
 
+export function subscribeToChats(
+  userId: string,
+  callback: (chats: Chat[]) => void
+): () => void {
+  if (!db) return () => {};
+  const q = query(collection(db, "chats"), where("participants", "array-contains", userId));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => {
+      const data = d.data() as any;
+      return {
+        id: d.id,
+        ...data,
+        lastMessageTime: data.lastMessageTime?.toDate?.(),
+      } as Chat;
+    });
+    // sort client-side by lastMessageTime desc
+    list.sort((a: any, b: any) => {
+      const ta = a.lastMessageTime?.getTime?.() ?? 0;
+      const tb = b.lastMessageTime?.getTime?.() ?? 0;
+      return tb - ta;
+    });
+    callback(list);
+  });
+}

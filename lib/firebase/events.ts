@@ -205,10 +205,23 @@ export async function applyToEvent(
   volunteerEmail: string,
   message?: string
 ): Promise<string> {
-  // Check if already applied
+  // Check if already applied; if yes, return existing application id (idempotent)
   const event = await getEvent(eventId);
-  if (event?.appliedVolunteers?.includes(volunteerId)) {
-    throw new Error("You have already applied to this event");
+  if (event) {
+    if (event.appliedVolunteers?.includes(volunteerId)) {
+      // find existing application
+      if (db) {
+        const q = query(
+          collection(db, "applications"),
+          where("eventId", "==", eventId),
+          where("volunteerId", "==", volunteerId)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          return snap.docs[0].id;
+        }
+      }
+    }
   }
 
   // Create application (only include message if it exists)
@@ -229,7 +242,7 @@ export async function applyToEvent(
 
   // Update event
   await updateDoc(doc(requireDb(), "events", eventId), {
-    appliedVolunteers: [...(event?.appliedVolunteers || []), volunteerId],
+    appliedVolunteers: Array.from(new Set([...(event?.appliedVolunteers || []), volunteerId])),
     updatedAt: serverTimestamp(),
   });
 

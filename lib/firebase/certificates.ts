@@ -147,7 +147,14 @@ export async function issueCertificatesForEvent(eventId: string): Promise<number
   if (!event) throw new Error("Event not found");
 
   // Fetch volunteers
-  const volunteerIds = event.selectedVolunteers || [];
+  let volunteerIds = event.selectedVolunteers || [];
+  // Fallback: if none explicitly selected, issue to all who applied
+  if (!volunteerIds.length) {
+    const applied = event.appliedVolunteers || [];
+    volunteerIds = applied;
+  }
+  // Deduplicate
+  volunteerIds = Array.from(new Set(volunteerIds));
   const results = await Promise.all(
     volunteerIds.map(async (vid) => {
       const u = await getUser(vid);
